@@ -1,0 +1,21 @@
+{
+    "name": "intel/admin-pacientes",
+    "description": "Desarrollo web de pacientes",
+    "autoload": {
+        "psr-4": {
+            "MVC\\": "./",
+            "Controller\\": "./Controllers",
+            "Model\\": "./Models"
+        }
+    },
+    "authors": [
+        {
+            "name": "Bryan Chaacha",
+            "email": "morocho.12chachas@gmail.com"
+        }
+    ],
+    "require": {
+        "firebase/php-jwt": "^6.1",
+        "vlucas/phpdotenv": "^5.4"
+    }
+}
