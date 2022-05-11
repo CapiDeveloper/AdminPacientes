@@ -70,9 +70,8 @@ class VeterinarioController{
             // Confirmar password
               if (password_verify($password,$existeUsuario->password)) {
                 
+                // Creacion de Token con JWT
                 $time = time();
-                
-
                   $token = [
                     'iat' => $time, // Tiempo que inició el token
                     'exp' => $time + (60*60), // Tiempo que expirará el token (+1 hora)
@@ -114,8 +113,37 @@ class VeterinarioController{
             header('HTTP/1.0 400 Bad Request');
             exit;
         }
+        
+        // decodificacion JWT
         $info= json_decode(base64_decode(str_replace('_', '/', str_replace('-','+',explode('.', $jwt)[1]))));
-        debuguear($info->data);
+
+        // id extraido de JWT
+        $idVeterinario =  $info->data->id;
+        $usuario = Veterinarios::find('id',$idVeterinario);
+        
+      }
+
+      public static function olvidePassword(){
+        if ($_SERVER["REQUEST_METHOD"] === 'POST') {
+
+          $usuario =  Veterinarios::find('email',$_POST['email']);
+          
+          // Si no existe agregar mensaje de errores
+          if (!$usuario) {
+            return;  
+          }
+
+          // Generar token en BD
+          $usuario->token = bin2hex(openssl_random_pseudo_bytes(32,$cstrong));
+          
+        }
+        
+      }
+      public static function comprobarToken(){
+        if ($_SERVER['REQUEST_METHOD']==='POST') {
+          
+        }
+
       }
 }
 ?>
