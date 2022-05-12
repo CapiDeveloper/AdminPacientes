@@ -47,9 +47,8 @@ class ActiveRecord{
         $query .=  join(', ', $valores );
         $query .= " WHERE id = '" . self::$db->escape_string($this->id) . "' ";
         $query .= " LIMIT 1 ";
-        debuguear($query);
         $resultado = self::$db->query($query);
-        debuguear($resultado);
+        return $resultado;
     }
     
     public function sincronizar($atributos){
@@ -79,7 +78,7 @@ class ActiveRecord{
     }
 
     protected static function crearObjeto($registro){
-        $objeto = new self;
+        $objeto = new static;
         foreach ($registro as $key => $value) {
             if(property_exists($objeto,$key));
             $objeto->$key = $value;

@@ -3,6 +3,7 @@
 namespace Controller;
 
 use Firebase\JWT\JWT;
+
 include_once __DIR__.'/../Includes/app.php';
 
 use Model\Veterinarios;
@@ -10,7 +11,7 @@ use Model\Veterinarios;
 class VeterinarioController{
     public static function registrar(){
       $alertas = [];
-      
+
       if ($_SERVER["REQUEST_METHOD"] === 'POST') {
 
         $veterinarios = new Veterinarios($_POST);
@@ -50,7 +51,7 @@ class VeterinarioController{
         $usuario = new Veterinarios($array);
         // Actualizado
         $resultado = $usuario->actualizar();
-        
+
       }else{
         //Alerta de error
         $alerta = 'Token no valido';
@@ -66,10 +67,10 @@ class VeterinarioController{
         if ($existeUsuario) {
           // verificar confirmacion
           if ($existeUsuario->confirmado == 'true') {
-            
+
             // Confirmar password
               if (password_verify($password,$existeUsuario->password)) {
-                
+
                 // Creacion de Token con JWT
                 $time = time();
                   $token = [
@@ -91,7 +92,7 @@ class VeterinarioController{
             // No esta confirmado el usuario
             echo 'No esta confirmado su cuenta';
           }
-          
+
         }else{
           echo 'No existe usuario';
         }
@@ -113,37 +114,57 @@ class VeterinarioController{
             header('HTTP/1.0 400 Bad Request');
             exit;
         }
-        
+
         // decodificacion JWT
         $info= json_decode(base64_decode(str_replace('_', '/', str_replace('-','+',explode('.', $jwt)[1]))));
 
         // id extraido de JWT
         $idVeterinario =  $info->data->id;
         $usuario = Veterinarios::find('id',$idVeterinario);
-        
+
       }
 
       public static function olvidePassword(){
         if ($_SERVER["REQUEST_METHOD"] === 'POST') {
 
           $usuario =  Veterinarios::find('email',$_POST['email']);
-          
+
           // Si no existe agregar mensaje de errores
           if (!$usuario) {
-            return;  
+            //error no existe usuario
+            return;
           }
 
+          // ** Almacenar en la bd **
           // Generar token en BD
-          $usuario->token = bin2hex(openssl_random_pseudo_bytes(32,$cstrong));
-          
-        }
-        
-      }
-      public static function comprobarToken(){
-        if ($_SERVER['REQUEST_METHOD']==='POST') {
-          
+          $usuario->generarToken();
+
+          $resultado =  $usuario->guardar();
+
         }
 
+      }
+      public static function comprobarToken(){
+        $token = $_GET['token'];
+        if(!$token) header('location: /api/');
+        $existeUsuario = Veterinarios::find('token',$token);
+        if (!$existeUsuario) {
+          // debuguear('El usuario no existe');
+          echo 'El usuario no existe';
+        };  
+
+        if ($_SERVER["REQUEST_METHOD"] === 'POST') {
+          $existeUsuario->sincronizar($_POST);
+          // Eliminamos el token
+          $existeUsuario->token = null;
+          // hasheamos password
+          $existeUsuario->hashearPassoword();
+          // guardando
+          $resultado = $existeUsuario->guardar();
+          if ($resultado) {
+            header('location: /api');
+          }
+        }
       }
 }
 ?>
